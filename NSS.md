@@ -1,6 +1,6 @@
 1.[SWPUCTF 2021 新生赛]gift_F12
-F12
 
+F12
 
 2.[SWPUCTF 2021 新生赛]jicao
 
@@ -11,14 +11,11 @@ GET: /?json{"x":"wllm"}
 POST: id=wllmNB
 ```
 
-
-
 3.[SWPUCTF 2021 新生赛]easy_md5
 
 观察代码，要求使用GET请求获得name，用POST请求获得password，并且要使得输入的name和password的MD5的值也要相同
 
 如果两个字符经MD5加密后的值为 0exxxxx形式，就会被认为是科学计数法，且表示的是0*10的xxxx次方，还是零，都是相等的，所以只要寻找这样的字符就好了
-
 
 4.[SWPUCTF 2021 新生赛]include
 
@@ -125,10 +122,9 @@ table_schema这是 `information_schema.tables` 表中的一个列，表示表所
 
 补充：
 
-
 5.[SWPUCTF 2021 新生赛]easyrce
 
-题目介绍是rec漏洞，rec为远程代码执行漏洞，观察代码可以得到
+题目介绍是rce漏洞，rce为远程代码执行漏洞，观察代码可以得到
 
 ![1742827765701](image/NSS/1742827765701.png)
 
@@ -162,3 +158,17 @@ $command : 要执⾏的命令。
 
 需要注意的是，使⽤ system() 或其他⽤于执⾏外部命令的函数时必须⾮常⼩⼼，特别是
 当命令中包含⽤户提供的数据时。否则，你的应⽤程序将容易受到命令注⼊攻击。
+
+
+6.[SWPUCTF 2021 新生赛]caidao
+
+观察代码是一个用利用post请求的rce漏洞，eval函数导致的
+
+![1742833451698](image/NSS/1742833451698.png)
+
+所以用post传参得到flag，在hackbar中利用post传参利用rce漏洞
+
+```
+wllm=system("ls /");
+wllm=system("cat /flag");
+```
