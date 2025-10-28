@@ -1174,7 +1174,6 @@ preg_match()函数,PHP 的正则匹配函数，成功返回 **1**，失败返回
 
 `php://filter/read=过滤器/resource=目标文件`
 
-
 用这个playload看到
 
 `file=php://filter/read=convert.base64-encode/resource=useless.php`
@@ -1241,7 +1240,7 @@ echo serialize($obj);
 
 然后用这个playload
 
-```abc
+```bash
 ?text=data://text/plain,welcome%20to%20the%20zjctf&file=useless.php&password=O:4:"Flag":1:{s:4:"file";s:8:"flag.php";}
 ```
 
@@ -1391,3 +1390,144 @@ PD9waHAgPSdOU1NDVEZ7YzQwNGJiMzYtMDEwNS00YTdhLTlhMGMtODQ4YjIxOWRiNDM1fSc7Cg==
 得到最后一部分
 
 完成NSSCTF{cae0af52-b007-4ee7-afe5-eb9116ad9732}
+
+# 38.[NSSCTF 2022 Spring Recruit]babyphp
+
+![1761655516742](images/NSS/1761655516742.png)
+
+看到题目代码,阅读代码
+
+`isset($_POST['a'])`：必须通过 POST 方式提交参数 `a`（即请求中必须包含 `a` 这个键）
+
+`!preg_match('/[0-9]/', $_POST['a'])`：`preg_match` 是正则匹配函数，`/[0-9]/` 表示匹配任何数字（0-9）；`!` 表示 “不匹配”，即参数 `a` 的值中不能包含任何数字字符（0-9）。
+
+`intval` 是将变量转换为整数的函数；在 PHP 中，“转换结果为非 0 值” 会被视为`true`，“0 或无法转换” 会被视为`false`。因此这里要求：`a` 转换为整数后必须是一个非 0 的有效整数。
+
+`if(isset($_POST['a'])&&!preg_match('/[0-9]/',$_POST['a'])&&intval($_POST['a'])){`
+
+* 这是一个条件判断，检查 POST 参数 `a` 是否满足三个条件：
+  1. `isset($_POST['a'])`：参数 `a` 必须存在于 POST 请求中。
+  2. `!preg_match('/[0-9]/',$_POST['a'])`：参数 `a` 的值不能包含任何数字（0-9）。这里有一个技巧：如果 `a` 是一个数组，`preg_match` 会返回 `false`（因为 `preg_match` 期望字符串），而 `!false` 是 `true`，所以条件满足。
+  3. `intval($_POST['a'])`：将 `a` 转换为整数后，必须为非零值。如果 `a` 是一个非空数组，`intval` 会返回 1（非零），满足条件。
+* 因此，为了通过这个检查，我们可以将 `a` 设置为一个非空数组，例如在 POST 数据中使用 `a[]=1`。
+
+```bash
+TEXTCOLLBYfGiJUETHQ4hAcKSMd5zYpgqf1YRDhkmxHkhPWptrkoyz28wnI9V0aHeAuaKnak
+```
+
+```bash'
+TEXTCOLLBYfGiJUETHQ4hEcKSMd5zYpgqf1YRDhkmxHkhPWptrkoyz28wnI9V0aHeAuaKnak
+```
+
+这是两个不同的字符串,但是MD5相同为`faad49866e9498fc1719f5289e7a0269`
+
+
+构造playload
+
+```bash
+a[]=1&b1=TEXTCOLLBYfGiJUETHQ4hAcKSMd5zYpgqf1YRDhkmxHkhPWptrkoyz28wnI9V0aHeAuaKnak&b2=TEXTCOLLBYfGiJUETHQ4hEcKSMd5zYpgqf1YRDhkmxHkhPWptrkoyz28wnI9V0aHeAuaKnak&c1=QNKCDZO&c2=s878926199a
+```
+
+得到flag
+
+![1761657627731](images/NSS/1761657627731.png)
+
+
+
+# 39.[鹤城杯 2021]EasyP
+
+进入查看题目,读读代码发现过滤规则
+
+![1761658215113](images/NSS/1761658215113.png)
+
+#### 涉及的函数 / 变量解析：
+
+1. **`preg_match`**：PHP 的正则匹配函数，用于检查字符串是否符合指定的正则表达式规则。语法：`preg_match(正则表达式, 目标字符串)`，返回`1`（匹配成功）或`0`（匹配失败）。
+2. **正则表达式`/utils\.php\/*$/i`**：
+   * `utils\.php`：匹配字符串`utils.php`（`.`是正则特殊字符，需用`\`转义为普通字符）；
+   * `\/*`：匹配**0 个或多个斜杠`/`**（`*`表示前面的字符可出现 0 次或多次）；
+   * `$`：匹配字符串的**结尾位置**（确保`utils.php`及后续的斜杠是路径的最后部分）；
+   * `i`：修饰符，表示**不区分大小写**（例如`Utils.PHP`也会被匹配）。
+3. **`$_SERVER['PHP_SELF']`**：PHP 的超全局变量，存储当前执行脚本的**路径信息**（从网站根目录开始的路径）。例如：
+   * 访问`http://example.com/index.php`时，其值可能为`/index.php`；
+   * 访问`http://example.com/index.php/abc/def`时，其值为`/index.php/abc/def`。
+
+#### 涉及的函数 / 变量解析：
+
+1. **`preg_match('/show_source/', ...)`**：检查目标字符串中是否包含`show_source`这个子串（不限制位置，只要出现就匹配）。
+2. **`$_SERVER['REQUEST_URI']`**：PHP 超全局变量，存储当前请求的**完整 URL 路径 + 查询参数**（原始未解码的字符串）。例如：
+   * 访问`http://example.com/index.php?a=1&b=2`时，其值为`/index.php?a=1&b=2`；
+   * 访问`http://example.com/path?show_source=1`时，其值为`/path?show_source=1`。
+
+#### 代码意图：
+
+禁止 URL 中出现`show_source`这个字符串。目的是防止攻击者通过 URL 传递`show_source`相关的参数（比如`?show_source=1`）来触发源码展示逻辑（后续代码确实有基于`show_source`参数的源码展示）。
+
+#### 涉及的函数 / 变量解析：
+
+1. **`isset($_GET['show_source'])`**：
+   * `isset`：PHP 函数，检查变量是否存在且不为`null`；
+   * `$_GET['show_source']`：获取 URL 中`show_source`参数的值（例如`?show_source=1`中，该值为`1`）。
+     这行代码的意思是：如果 URL 中存在`show_source`参数，则执行后续逻辑。
+2. **`highlight_file`**：PHP 函数，用于**语法高亮显示指定文件的源代码**（常用于调试时展示代码）。例如`highlight_file('test.php')`会在页面上显示`test.php`的源码，并对语法关键字着色。
+3. **`basename($_SERVER['PHP_SELF'])`**：
+   * `basename`：PHP 函数，从路径中提取**文件名部分**（忽略路径中的目录层级）。例如：
+     * `basename('/a/b/c.php')`返回`c.php`；
+     * `basename('/index.php/abc')`返回`abc`（因为路径最后是`abc`）。
+   * 结合`$_SERVER['PHP_SELF']`，这行的作用是：从当前脚本的路径中提取最后一段作为文件名。
+
+#### 代码意图：
+
+如果 URL 中存在`show_source`参数，则展示`basename($_SERVER['PHP_SELF'])`对应的文件的源码（语法高亮），然后终止脚本。
+
+
+可以通过url编码绕过:(注意构造的恶意路径前面必须要加上index.php)
+
+### 1. 先理解：服务器如何处理 URL 请求（为什么直接访问`/utils.php`会报错）
+
+你遇到的 “Not Found”，是 Apache 服务器的正常响应 —— 当你访问`http://xxx/utils.php`时，服务器会去网站根目录找**名为`utils.php`的独立文件**，但这个文件很可能不存在（或服务器配置不允许直接访问）。因为`utils.php`是被当前脚本（比如`index.php`）通过`include 'utils.php'`调用的 “依赖文件”，它不是一个 “独立入口脚本”，服务器根目录里可能根本没有直接可访问的`utils.php`路径。
+
+### 2. 加`index.php`的关键作用：让构造的路径被 PHP 解析，而非服务器当作文件查找
+
+当我们在 URL 里加`index.php`（比如`/index.php/utils.php%00`）时，服务器会优先识别`index.php`—— 这是 Apache 默认的 “入口脚本名”（类似的还有`index.html`），服务器会直接执行`index.php`，而不会去查找`index.php/utils.php%00`这个 “不存在的文件”。
+
+此时，`/utils.php%00`这个片段，会被当作`index.php`的 “路径后缀”，传递给 PHP 的`$_SERVER['PHP_SELF']`变量（比如`$_SERVER['PHP_SELF']`会变成`/index.php/utils.php%00`）。这正是我们需要的 —— 只有让`utils.php%00`进入`$_SERVER['PHP_SELF']`，才能利用后续的`basename()`函数漏洞（忽略`%00`），最终让`highlight_file`读取到`utils.php`的源码。
+
+### 3. 总结：`index.php`是 “漏洞利用的桥梁”
+
+没有`index.php`，我们构造的`/utils.php%00`会被服务器当作 “找文件”，直接报 404；加上`index.php`后，我们构造的路径会变成 “给`index.php`传的参数”，被 PHP 解析，进而触发代码里的`basename()`漏洞和`highlight_file`逻辑 —— 这才是能读取`utils.php`的前提。
+
+![1761661751891](images/NSS/1761661751891.png)
+
+playload:
+
+```bash
+/index.php/utils.php/%ff?%73how_source=1
+或者
+/index.php/utils.php/%ff?%73%68%6f%77%5f%73%6f%75%72%63%65=1
+```
+
+`%ff`的作用类似之前提到的`%00`（空字节），但更适合高版本 PHP 环境（`%00`在 PHP 5.3.4 + 中被禁用，而`%ff`等非 ASCII 字符的处理漏洞更普遍）
+
+(注:满足了\$secret = "nssctfrtdfgvhbjdas";也没有意义,什么都不会出现)
+
+
+# 40.[SWPUCTF 2022 新生赛]ez\_ez\_php(revenge)
+
+![1761662433777](images/NSS/1761662433777.png)
+
+`substr(\$\_GET["file"], 0, 3) === "php"`的意思是检查file参数的前三个值是不是严格等于php
+
+想到使用php为协议,构造playload
+
+```bash
+?file=php://filter/read=convent.base64-encode/resource=flag.php
+```
+
+发现
+
+![1761663044718](images/NSS/1761663044718.png)
+
+尝试访问/flag得到flag
+
+![1761663208734](images/NSS/1761663208734.png)
